@@ -1,0 +1,53 @@
+name: Build and release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install mingw-w64
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends mingw-w64 g++
+
+      - name: Build
+        run: ./build.sh
+
+      - name: Read version
+        id: ver
+        run: echo "ver=$(sed -n 's/^VER=//p' build.sh)" >> "$GITHUB_OUTPUT"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: NoAutosave-OBSE64-${{ steps.ver.outputs.ver }}
+          path: dist/NoAutosave-OBSE64-${{ steps.ver.outputs.ver }}.zip
+          if-no-files-found: error
+
+      - name: Create or update release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VER: ${{ steps.ver.outputs.ver }}
+        run: |
+          TAG="v$VER"
+          ZIP="dist/NoAutosave-OBSE64-$VER.zip"
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "release $TAG exists, replacing asset"
+            gh release upload "$TAG" "$ZIP" --clobber --repo "$GITHUB_REPOSITORY"
+          else
+            echo "creating release $TAG"
+            gh release create "$TAG" "$ZIP" \
+              --repo "$GITHUB_REPOSITORY" \
+              --target "$GITHUB_SHA" \
+              --title "NoAutosave $VER" \
+              --notes "OBSE64 plugin for Oblivion Remastered. Install the zip with your mod manager, or extract it into OblivionRemastered/Binaries/Win64/. Options are in OBSE/Plugins/NoAutosave.ini: bDisableAllAutosaves (default 1) and bEnableLog (default 0). Built from ${GITHUB_SHA}."
+          fi

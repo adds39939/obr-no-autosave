@@ -66,6 +66,14 @@ exe to confirm the signatures match exactly once at the expected RVAs, and
 packages the zip into `dist/`. `test/wine_load.cpp` is an optional loader
 harness for checking the exports under Wine.
 
+## Releases
+
+Every push to `main` runs the GitHub Actions workflow in
+`.github/workflows/release.yml`. It builds the DLL with mingw-w64, packages the
+zip, and publishes it to the `v<version>` release, where the version is the
+`VER` line in `build.sh`. Bump `VER` to cut a new release; pushing without a
+bump replaces the zip on the current release.
+
 ## Game updates
 
 The plugin declares itself address-independent (signature scanning) so OBSE64
