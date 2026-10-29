@@ -71,3 +71,8 @@ harness for checking the exports under Wine.
 The plugin declares itself address-independent (signature scanning) so OBSE64
 will load it on newer game versions. If a patch changes the code around either
 location the scan fails, nothing is patched, and the log says so.
+
+## License
+
+MIT, see `LICENSE`. `src/PluginAPI.h` is the plugin interface header from
+[OBSE64](https://github.com/ianpatt/obse64) and is used under its own terms.
